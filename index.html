@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Gateway Dashboard - Fully Responsive</title>
+    <title>WhatsApp Gateway Dashboard - Text Formatting Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
@@ -20,12 +20,14 @@
         }
     </script>
     <style>
-        /* Mencegah highlight teks default untuk kenyamanan UI mobile */
         .no-select { -webkit-tap-highlight-color: transparent; }
+        /* Sembunyikan scrollbar bawaan pada kolom input textarea agar rapi */
+        textarea::-webkit-scrollbar { width: 0px; }
     </style>
 </head>
 <body class="bg-darkBg text-white h-screen flex overflow-hidden font-sans select-none no-select" onclick="closeMenus()">
 
+    <!-- 1. SIDEBAR UTAMA (Tablet/PC) -->
     <div class="hidden md:flex w-16 bg-sidebarBg flex-col justify-between items-center py-4 border-r border-gray-800 shrink-0">
         <div class="flex flex-col space-y-6 items-center w-full">
             <div onclick="toggleView('chat')" class="text-activeGreen bg-[#202c33] p-3 rounded-xl cursor-pointer"><i class="fa-regular fa-comment-dots text-xl"></i></div>
@@ -33,7 +35,9 @@
         </div>
     </div>
 
+    <!-- 2. SIDEBAR SUB-MENU (DAFTAR CHAT ATAU SETTINGS) -->
     <div id="sidebar-panel" class="w-full md:w-80 bg-sidebarBg flex flex-col border-r border-gray-800 shrink-0 h-full">
+        <!-- TAMPILAN SIDEBAR CHAT -->
         <div id="sidebar-chat-view" class="flex flex-col h-full justify-between">
             <div class="flex flex-col flex-1 min-h-0">
                 <div class="p-4 space-y-4">
@@ -46,7 +50,6 @@
                     </div>
                     <input type="text" placeholder="Search" class="w-full bg-[#202c33] text-sm p-2 rounded-lg outline-none">
                 </div>
-                
                 <div id="chat-list" class="flex-1 overflow-y-auto px-2 space-y-1"></div>
             </div>
 
@@ -58,6 +61,7 @@
             </div>
         </div>
 
+        <!-- TAMPILAN SIDEBAR PENGATURAN -->
         <div id="sidebar-settings-view" class="hidden flex flex-col h-full p-4 space-y-2">
             <div class="flex items-center space-x-3 mb-4">
                 <button onclick="toggleView('chat')" class="md:hidden text-textMuted hover:text-white"><i class="fa-solid fa-arrow-left"></i></button>
@@ -66,13 +70,15 @@
             <button onclick="switchSettingsTab('general')" class="w-full text-left p-3 rounded bg-[#202c33] text-sm font-medium hover:bg-gray-800">📁 General Settings</button>
             <button onclick="switchSettingsTab('users')" class="w-full text-left p-3 rounded bg-[#202c33] text-sm font-medium hover:bg-gray-800">👥 Users Management</button>
             <button onclick="switchSettingsTab('api')" class="w-full text-left p-3 rounded bg-[#202c33] text-sm font-medium hover:bg-gray-800">🔑 API Integrations</button>
-            <button onclick="toggleView('chat')" class="hidden md:block w-full text-center p-2 rounded border border-gray-700 text-xs text-textMuted hover:text-white mt-4">Back to Chats</button>
         </div>
     </div>
 
+    <!-- 3. AREA KANAN UTAMA (RUANG CHAT & HALAMAN PENGATURAN) -->
     <div id="main-content-panel" class="hidden md:flex flex-1 bg-chatBg flex-col justify-between relative h-full w-full">
         
+        <!-- PANEL CHAT UTAMA -->
         <div id="main-chat-panel" class="flex flex-col h-full justify-between w-full">
+            <!-- HEADER CHAT -->
             <div class="h-16 bg-[#202c33] flex items-center justify-between px-4 md:px-6 border-b border-gray-800 z-20 shrink-0">
                 <div id="normal-header" class="flex items-center space-x-3 min-w-0">
                     <button onclick="backToSidebar()" class="md:hidden text-textMuted hover:text-white text-lg pr-1"><i class="fa-solid fa-arrow-left"></i></button>
@@ -88,21 +94,28 @@
                 </div>
             </div>
 
+            <!-- ISI CHAT (SCROLLABLE) -->
             <div id="chat-messages" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-3 bg-opacity-95"></div>
 
-            <div id="attach-menu" class="hidden absolute bottom-20 left-4 bg-[#222e35] rounded-xl border border-gray-700 py-1 w-44 z-40 shadow-xl">
+            <!-- POP-UP MENU ATTACHMENT -->
+            <div id="attach-menu" class="hidden absolute bottom-24 left-4 bg-[#222e35] rounded-xl border border-gray-700 py-1 w-44 z-40 shadow-xl">
                 <label class="flex items-center space-x-3 px-4 py-3 hover:bg-[#2a3942] cursor-pointer text-sm"><i class="fa-regular fa-image text-emerald-400"></i><span>Image / Photo</span><input type="file" accept="image/*" class="hidden" onchange="handleFileUpload(this, 'image')"></label>
                 <label class="flex items-center space-x-3 px-4 py-3 hover:bg-[#2a3942] cursor-pointer text-sm"><i class="fa-regular fa-file-video text-red-400"></i><span>Video</span><input type="file" accept="video/*" class="hidden" onchange="handleFileUpload(this, 'video')"></label>
                 <label class="flex items-center space-x-3 px-4 py-3 hover:bg-[#2a3942] cursor-pointer text-sm"><i class="fa-regular fa-file-lines text-blue-400"></i><span>Document</span><input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" class="hidden" onchange="handleFileUpload(this, 'document')"></label>
             </div>
 
-            <div class="h-16 bg-[#202c33] flex items-center px-4 space-x-3 border-t border-gray-800 relative z-30 shrink-0">
-                <button onclick="event.stopPropagation(); document.getElementById('attach-menu').classList.toggle('hidden')" class="text-textMuted hover:text-white text-xl"><i class="fa-solid fa-paperclip"></i></button>
-                <input type="text" id="msg-input" placeholder="Type a message..." class="flex-1 bg-[#2a3942] py-2 px-4 rounded-lg outline-none text-sm min-w-0" onkeypress="if(event.key==='Enter')sendText()">
-                <button onclick="sendText()" class="text-activeGreen text-xl p-1 shrink-0"><i class="fa-solid fa-paper-plane"></i></button>
+            <!-- BAR INPUT PESAN (MENGGUNAKAN TEXTAREA AGAR BISA DI-ENTER) -->
+            <div class="min-h-16 max-h-36 bg-[#202c33] flex items-end px-4 py-3 space-x-3 border-t border-gray-800 relative z-30 shrink-0">
+                <button onclick="event.stopPropagation(); document.getElementById('attach-menu').classList.toggle('hidden')" class="text-textMuted hover:text-white text-xl mb-1"><i class="fa-solid fa-paperclip"></i></button>
+                
+                <!-- Diubah dari <input> menjadi <textarea> agar mendukung ketik banyak baris / susunan promosi -->
+                <textarea id="msg-input" rows="1" placeholder="Type a message... (Press Enter to Send, Shift+Enter for New Line)" class="flex-1 bg-[#2a3942] py-2 px-4 rounded-lg outline-none text-sm min-w-0 resize-none h-9 overflow-y-auto" onkeydown="handleKeyPress(event)"></textarea>
+                
+                <button onclick="sendText()" class="text-activeGreen text-xl p-1 shrink-0 mb-0.5"><i class="fa-solid fa-paper-plane"></i></button>
             </div>
         </div>
 
+        <!-- PANEL DETIL HALAMAN SETTINGS -->
         <div id="main-settings-panel" class="hidden flex-1 p-4 md:p-8 overflow-y-auto bg-sidebarBg w-full h-full">
             <div id="tab-general" class="space-y-4">
                 <h2 class="text-xl font-bold">General Settings</h2>
@@ -123,6 +136,7 @@
         </div>
     </div>
 
+    <!-- MODAL POPUPS -->
     <div id="contact-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
         <div class="bg-settingsBg p-6 rounded-xl w-full max-w-sm border border-gray-700">
             <h3 class="text-lg font-semibold mb-4">Add New Contact</h3>
@@ -152,14 +166,12 @@
             localStorage.setItem('wg_active', activeId);
         }
 
-        // RESPONSIF LOGIC: Kembali ke daftar sidebar di HP
         function backToSidebar() {
             document.getElementById('sidebar-panel').classList.remove('hidden');
             document.getElementById('main-content-panel').classList.add('hidden');
             document.getElementById('main-content-panel').classList.remove('flex');
         }
 
-        // RESPONSIF LOGIC: Membuka chat di HP / Desktop
         function switchChat(id) {
             activeId = id;
             clearSelection();
@@ -167,7 +179,6 @@
             renderMessages();
             save();
 
-            // Di layar HP (lebar < 768px), sembunyikan sidebar dan tunjukkan area chat kanan
             if (window.innerWidth < 768) {
                 document.getElementById('sidebar-panel').classList.add('hidden');
                 document.getElementById('main-content-panel').classList.remove('hidden');
@@ -187,7 +198,6 @@
                 document.getElementById('sidebar-settings-view').classList.remove('hidden');
                 document.getElementById('main-settings-panel').classList.remove('hidden');
                 
-                // Jika di HP, buka panel konten sebelah kanan saat menu settings diklik
                 if (window.innerWidth < 768) {
                     document.getElementById('sidebar-panel').classList.add('hidden');
                     document.getElementById('main-content-panel').classList.remove('hidden');
@@ -208,7 +218,6 @@
             
             const filtered = contacts.filter(c => c.isArchived === viewArchivedMode);
             if (filtered.length > 0) {
-                // Di komputer langsung buka chat pertama, di HP biarkan user memilih sendiri
                 if (window.innerWidth >= 768) switchChat(filtered[0].id);
                 else { renderContacts(); renderMessages(); }
             } else {
@@ -230,13 +239,16 @@
                 const archiveIcon = c.isArchived ? 'fa-solid fa-box-open' : 'fa-solid fa-box-archive';
                 const archiveTitle = c.isArchived ? 'Unarchive' : 'Archive';
 
+                // Teks preview di daftar kontak dibuat satu baris saja agar tetap estetik
+                let previewText = last.text.split('\n')[0]; 
+
                 list.insertAdjacentHTML('beforeend', `
                     <div onclick="switchChat('${c.id}')" class="group flex items-center justify-between p-3 rounded-lg cursor-pointer ${isAct} hover:bg-[#202c33]/50 relative transition">
                         <div class="flex items-center space-x-3 min-w-0 flex-1">
                             <div class="w-10 h-10 ${c.color} rounded-full flex items-center justify-center font-bold shrink-0">${c.name[0]}</div>
                             <div class="flex-1 min-w-0">
                                 <h2 class="text-sm truncate pr-12 md:pr-16">${c.name}</h2>
-                                <p class="text-xs text-textMuted truncate pr-12 md:pr-16">${last.text}</p>
+                                <p class="text-xs text-textMuted truncate pr-12 md:pr-16">${previewText}</p>
                             </div>
                         </div>
                         <div class="absolute right-2 top-1/2 -translate-y-1/2 flex md:hidden group-hover:flex items-center space-x-2 bg-gradient-to-l from-[#131a1e] via-[#131a1e] to-transparent pl-4 h-full z-10">
@@ -290,14 +302,16 @@
                 const side = isOut ? 'justify-end' : 'justify-start';
                 const border = isSel ? 'border-2 border-emerald-400 scale-[0.98]' : '';
 
-                let contentHTML = `<p class="text-sm font-light pr-10 whitespace-pre-wrap break-all">${m.text}</p>`;
+                // KUNCI UTAMA: Menggunakan class `whitespace-pre-wrap` dan `break-words` agar format teks tersusun sempurna ke bawah
+                let contentHTML = `<p class="text-sm font-light pr-8 whitespace-pre-wrap break-words leading-relaxed">${m.text}</p>`;
+                
                 if (m.msgType === 'image') contentHTML = `<img src="${m.src}" class="max-w-[240px] sm:max-w-xs rounded mb-1 max-h-48 object-cover">`;
                 if (m.msgType === 'video') contentHTML = `<video src="${m.src}" controls class="max-w-[240px] sm:max-w-xs rounded mb-1 max-h-48"></video>`;
                 if (m.msgType === 'document') contentHTML = `<div class="flex items-center space-x-2 p-1 bg-black/20 rounded text-sm max-w-xs"><i class="fa-regular fa-file-pdf text-xl text-red-400 shrink-0"></i><span class="truncate max-w-[140px] sm:max-w-[180px]">${m.text}</span></div>`;
 
                 box.insertAdjacentHTML('beforeend', `
                     <div oncontextmenu="event.preventDefault(); toggleSelect(${m.id})" onclick="if(selectedIds.length>0) toggleSelect(${m.id})" class="flex ${side} cursor-pointer transition-all duration-100">
-                        <div class="${bg} ${border} max-w-[85%] md:max-w-md rounded-lg p-2.5 shadow relative">
+                        <div class="${bg} ${border} max-w-[85%] md:max-w-xl rounded-lg p-3 shadow relative">
                             ${isSel ? '<span class="text-[9px] text-emerald-400 block font-bold mb-0.5"><i class="fa-solid fa-circle-check"></i> Selected</span>' : ''}
                             ${contentHTML}
                             <span class="text-[9px] text-textMuted absolute bottom-1 right-2">${m.time}</span>
@@ -308,19 +322,41 @@
             box.scrollTop = box.scrollHeight;
         }
 
+        // Fungsi kontrol tombol ketik: Enter = Kirim, Shift + Enter = Baris Baru
+        function handleKeyPress(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault(); // Mencegah baris baru bawaan enter
+                sendText();
+            }
+            // Otomatis menyesuaikan tinggi textarea berdasarkan jumlah baris teks yang diketik
+            const textarea = e.target;
+            textarea.style.h = 'auto';
+            textarea.style.height = (textarea.scrollHeight) + 'px';
+        }
+
         function sendText() {
             const inp = document.getElementById('msg-input'); if(!inp.value.trim()) return;
             const act = contacts.find(c => c.id === activeId); if (!act) return;
             const now = new Date();
-            act.messages.push({ id: Date.now(), type: 'out', msgType: 'text', text: inp.value, time: now.getHours().toString().padStart(2, '0')+'.' + now.getMinutes().toString().padStart(2, '0') });
-            inp.value = ''; renderMessages(); renderContacts(); save();
+            
+            act.messages.push({ 
+                id: Date.now(), 
+                type: 'out', 
+                msgType: 'text', 
+                text: inp.value, 
+                time: now.getHours().toString().padStart(2, '0') + '.' + now.getMinutes().toString().padStart(2, '0') 
+            });
+            
+            inp.value = '';
+            inp.style.height = '36px'; // Reset tinggi input setelah dikirim
+            renderMessages(); renderContacts(); save();
         }
 
         function handleFileUpload(input, type) {
             const file = input.files[0]; if (!file) return;
             const act = contacts.find(c => c.id === activeId); if (!act) return;
             const now = new Date();
-            const timeStr = now.getHours().toString().padStart(2, '0')+'.' + now.getMinutes().toString().padStart(2, '0');
+            const timeStr = now.getHours().toString().padStart(2, '0') + '.' + now.getMinutes().toString().padStart(2, '0');
 
             if (type === 'image' || type === 'video') {
                 const reader = new FileReader();
@@ -386,12 +422,10 @@
             closeModal('contact-modal'); document.getElementById('new-name').value=''; switchChat(id);
         }
 
-        // Inisialisasi awal responsif layar desktop jika di-load pertama kali
         if (window.innerWidth >= 768) {
             renderContacts();
             renderMessages();
         } else {
-            // Jika dibuka di HP pertama kali, biarkan user memilih daftar chat terlebih dahulu
             renderContacts();
             document.getElementById('sidebar-panel').classList.remove('hidden');
             document.getElementById('main-content-panel').classList.add('hidden');
