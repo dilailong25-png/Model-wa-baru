@@ -350,7 +350,7 @@ function sendText() {
                 const side = isOut ? 'justify-end' : 'justify-start';
                 const border = isSel ? 'border-2 border-emerald-400 scale-[0.98]' : '';
 
-                let contentHTML = `<p class="text-sm font-light pr-6 whitespace-pre-wrap break-words leading-relaxed">${m.text}</p>`;
+                let contentHTML = `<p class="text-sm font-light pr-6 whitespace-pre-wrap break-words leading-relaxed select-text cursor-text">${m.text}</p>`;
                 
                 // FITUR DATA DOWNLOAD: Menambahkan tombol download di setiap data media
                 if (m.msgType === 'image') {
