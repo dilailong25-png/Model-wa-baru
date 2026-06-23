@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Gateway Dashboard - Text Formatting Fix</title>
+    <title>WhatsApp Gateway Dashboard - Advanced Features</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -21,13 +22,12 @@
     </script>
     <style>
         .no-select { -webkit-tap-highlight-color: transparent; }
-        /* Sembunyikan scrollbar bawaan pada kolom input textarea agar rapi */
-        textarea::-webkit-scrollbar { width: 0px; }
+        textarea::-webkit-scrollbar { width: 4px; }
+        textarea::-webkit-scrollbar-thumb { background-color: #2a3942; border-radius: 2px; }
     </style>
 </head>
 <body class="bg-darkBg text-white h-screen flex overflow-hidden font-sans select-none no-select" onclick="closeMenus()">
 
-    <!-- 1. SIDEBAR UTAMA (Tablet/PC) -->
     <div class="hidden md:flex w-16 bg-sidebarBg flex-col justify-between items-center py-4 border-r border-gray-800 shrink-0">
         <div class="flex flex-col space-y-6 items-center w-full">
             <div onclick="toggleView('chat')" class="text-activeGreen bg-[#202c33] p-3 rounded-xl cursor-pointer"><i class="fa-regular fa-comment-dots text-xl"></i></div>
@@ -35,9 +35,7 @@
         </div>
     </div>
 
-    <!-- 2. SIDEBAR SUB-MENU (DAFTAR CHAT ATAU SETTINGS) -->
     <div id="sidebar-panel" class="w-full md:w-80 bg-sidebarBg flex flex-col border-r border-gray-800 shrink-0 h-full">
-        <!-- TAMPILAN SIDEBAR CHAT -->
         <div id="sidebar-chat-view" class="flex flex-col h-full justify-between">
             <div class="flex flex-col flex-1 min-h-0">
                 <div class="p-4 space-y-4">
@@ -61,7 +59,6 @@
             </div>
         </div>
 
-        <!-- TAMPILAN SIDEBAR PENGATURAN -->
         <div id="sidebar-settings-view" class="hidden flex flex-col h-full p-4 space-y-2">
             <div class="flex items-center space-x-3 mb-4">
                 <button onclick="toggleView('chat')" class="md:hidden text-textMuted hover:text-white"><i class="fa-solid fa-arrow-left"></i></button>
@@ -73,12 +70,9 @@
         </div>
     </div>
 
-    <!-- 3. AREA KANAN UTAMA (RUANG CHAT & HALAMAN PENGATURAN) -->
     <div id="main-content-panel" class="hidden md:flex flex-1 bg-chatBg flex-col justify-between relative h-full w-full">
-        
-        <!-- PANEL CHAT UTAMA -->
         <div id="main-chat-panel" class="flex flex-col h-full justify-between w-full">
-            <!-- HEADER CHAT -->
+            
             <div class="h-16 bg-[#202c33] flex items-center justify-between px-4 md:px-6 border-b border-gray-800 z-20 shrink-0">
                 <div id="normal-header" class="flex items-center space-x-3 min-w-0">
                     <button onclick="backToSidebar()" class="md:hidden text-textMuted hover:text-white text-lg pr-1"><i class="fa-solid fa-arrow-left"></i></button>
@@ -86,36 +80,38 @@
                     <h3 id="active-name" class="text-sm font-medium truncate">TFAM ID</h3>
                 </div>
                 
-                <div id="wa-toolbar" class="hidden flex items-center space-x-2 md:space-x-4 bg-[#005c4b] px-3 py-1.5 rounded-lg text-xs max-w-full overflow-x-auto">
-                    <span id="sel-count" class="whitespace-nowrap">0 Sel</span>
-                    <button onclick="openForwardModal()" class="hover:text-green-300"><i class="fa-solid fa-share"></i> <span class="hidden sm:inline">Forward</span></button>
-                    <button onclick="deleteMsg()" class="text-red-400 hover:text-red-300"><i class="fa-solid fa-trash"></i> <span class="hidden sm:inline">Delete</span></button>
-                    <button onclick="clearSelection()" class="text-gray-300">Cancel</button>
+                <div id="wa-toolbar" class="hidden flex items-center space-x-2 bg-[#005c4b] px-3 py-1.5 rounded-lg text-xs max-w-full overflow-x-auto">
+                    <span id="sel-count" class="whitespace-nowrap font-bold">0 Sel</span>
+                    <button onclick="openForwardModal()" class="hover:text-green-300 px-1 py-0.5"><i class="fa-solid fa-share"></i> Forward</button>
+                    <button onclick="downloadSelected('pdf')" class="bg-red-700 hover:bg-red-600 px-2 py-0.5 rounded font-medium"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                    <button onclick="downloadSelected('txt')" class="bg-blue-700 hover:bg-blue-600 px-2 py-0.5 rounded font-medium"><i class="fa-solid fa-file-lines"></i> TXT</button>
+                    <button onclick="deleteMsg()" class="text-red-300 hover:text-red-200 px-1 py-0.5"><i class="fa-solid fa-trash"></i> Delete</button>
+                    <button onclick="clearSelection()" class="text-gray-300 pl-1">Cancel</button>
                 </div>
             </div>
 
-            <!-- ISI CHAT (SCROLLABLE) -->
             <div id="chat-messages" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-3 bg-opacity-95"></div>
 
-            <!-- POP-UP MENU ATTACHMENT -->
             <div id="attach-menu" class="hidden absolute bottom-24 left-4 bg-[#222e35] rounded-xl border border-gray-700 py-1 w-44 z-40 shadow-xl">
                 <label class="flex items-center space-x-3 px-4 py-3 hover:bg-[#2a3942] cursor-pointer text-sm"><i class="fa-regular fa-image text-emerald-400"></i><span>Image / Photo</span><input type="file" accept="image/*" class="hidden" onchange="handleFileUpload(this, 'image')"></label>
                 <label class="flex items-center space-x-3 px-4 py-3 hover:bg-[#2a3942] cursor-pointer text-sm"><i class="fa-regular fa-file-video text-red-400"></i><span>Video</span><input type="file" accept="video/*" class="hidden" onchange="handleFileUpload(this, 'video')"></label>
                 <label class="flex items-center space-x-3 px-4 py-3 hover:bg-[#2a3942] cursor-pointer text-sm"><i class="fa-regular fa-file-lines text-blue-400"></i><span>Document</span><input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" class="hidden" onchange="handleFileUpload(this, 'document')"></label>
             </div>
 
-            <!-- BAR INPUT PESAN (MENGGUNAKAN TEXTAREA AGAR BISA DI-ENTER) -->
-            <div class="min-h-16 max-h-36 bg-[#202c33] flex items-end px-4 py-3 space-x-3 border-t border-gray-800 relative z-30 shrink-0">
+            <div id="input-container" class="transition-all duration-200 bg-[#202c33] flex items-end px-4 py-3 space-x-3 border-t border-gray-800 relative z-30 shrink-0 h-16">
                 <button onclick="event.stopPropagation(); document.getElementById('attach-menu').classList.toggle('hidden')" class="text-textMuted hover:text-white text-xl mb-1"><i class="fa-solid fa-paperclip"></i></button>
                 
-                <!-- Diubah dari <input> menjadi <textarea> agar mendukung ketik banyak baris / susunan promosi -->
-                <textarea id="msg-input" rows="1" placeholder="Type a message... (Press Enter to Send, Shift+Enter for New Line)" class="flex-1 bg-[#2a3942] py-2 px-4 rounded-lg outline-none text-sm min-w-0 resize-none h-9 overflow-y-auto" onkeydown="handleKeyPress(event)"></textarea>
+                <div class="flex-1 flex bg-[#2a3942] rounded-lg items-end px-2 relative">
+                    <textarea id="msg-input" placeholder="Type or paste long broadcast messages here..." class="w-full bg-transparent py-2 pl-2 pr-8 outline-none text-sm resize-none h-9 max-h-48 overflow-y-auto" onkeydown="handleKeyPress(event)"></textarea>
+                    <button onclick="toggleExpandInput()" id="expand-btn" class="absolute right-2 bottom-2 text-textMuted hover:text-white text-xs p-1" title="Perluas Kolom Input">
+                        <i class="fa-solid fa-expand"></i>
+                    </button>
+                </div>
                 
                 <button onclick="sendText()" class="text-activeGreen text-xl p-1 shrink-0 mb-0.5"><i class="fa-solid fa-paper-plane"></i></button>
             </div>
         </div>
 
-        <!-- PANEL DETIL HALAMAN SETTINGS -->
         <div id="main-settings-panel" class="hidden flex-1 p-4 md:p-8 overflow-y-auto bg-sidebarBg w-full h-full">
             <div id="tab-general" class="space-y-4">
                 <h2 class="text-xl font-bold">General Settings</h2>
@@ -136,7 +132,6 @@
         </div>
     </div>
 
-    <!-- MODAL POPUPS -->
     <div id="contact-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
         <div class="bg-settingsBg p-6 rounded-xl w-full max-w-sm border border-gray-700">
             <h3 class="text-lg font-semibold mb-4">Add New Contact</h3>
@@ -153,13 +148,68 @@
         </div>
     </div>
 
+    <div id="pdf-export-container" class="hidden text-black p-8 bg-white" style="font-family: Arial, sans-serif;"></div>
+
     <script>
+
+
+        // 1. Ganti fungsi handleKeyPress agar saat meluas, kirim pesan bisa menggunakan Ctrl + Enter
+function handleKeyPress(e) {
+    if (e.key === 'Enter') {
+        if (!isInputExpanded && !e.shiftKey) {
+            // Jika kolom kecil: Enter langsung kirim
+            e.preventDefault(); 
+            sendText();
+        } else if (isInputExpanded && (e.ctrlKey || e.metaKey)) {
+            // Jika kolom besar: Ctrl + Enter untuk kirim (Enter biasa untuk baris baru)
+            e.preventDefault();
+            sendText();
+        }
+    }
+}
+
+// 2. Ganti fungsi sendText agar membersihkan text area dengan benar saat kondisi meluas
+function sendText() {
+    const inp = document.getElementById('msg-input'); 
+    if (!inp.value.trim()) return;
+    
+    const act = contacts.find(c => c.id === activeId); 
+    if (!act) return;
+    
+    const now = new Date();
+    
+    act.messages.push({ 
+        id: Date.now(), 
+        type: 'out', 
+        msgType: 'text', 
+        text: inp.value, 
+        time: now.getHours().toString().padStart(2, '0') + '.' + now.getMinutes().toString().padStart(2, '0') 
+    });
+    
+    // Reset nilai teks input
+    inp.value = '';
+    
+    // Kembalikan tinggi textarea sesuai dengan kondisi layarnya
+    if (!isInputExpanded) {
+        inp.style.height = '36px';
+    } else {
+        inp.style.height = '150px'; // Tetap tinggi jika mode meluas aktif
+    }
+    
+    renderMessages(); 
+    renderContacts(); 
+    save();
+}
+
         let contacts = JSON.parse(localStorage.getItem('wg_chats')) || [
-            { id: 'tfam', name: 'TFAM ID', color: 'bg-sky-600', isArchived: false, messages: [{ id: 1, type: 'in', msgType: 'text', text: 'Halo selamat pagi!', time: '09.00' }] }
+            { id: 'tfam', name: 'TFAM ID', color: 'bg-sky-600', isArchived: false, messages: [
+                { id: 1, type: 'in', msgType: 'text', text: '🚀 Upgrade Branding Usaha Sekarang!\n\nDesain profesional bikin bisnis makin dipercaya ✨', time: '09.00' }
+            ]}
         ];
         let activeId = localStorage.getItem('wg_active') || 'tfam';
         let selectedIds = [];
         let viewArchivedMode = false;
+        let isInputExpanded = false; // Status ukuran kolom input
 
         function save() {
             localStorage.setItem('wg_chats', JSON.stringify(contacts));
@@ -169,16 +219,10 @@
         function backToSidebar() {
             document.getElementById('sidebar-panel').classList.remove('hidden');
             document.getElementById('main-content-panel').classList.add('hidden');
-            document.getElementById('main-content-panel').classList.remove('flex');
         }
 
         function switchChat(id) {
-            activeId = id;
-            clearSelection();
-            renderContacts();
-            renderMessages();
-            save();
-
+            activeId = id; clearSelection(); renderContacts(); renderMessages(); save();
             if (window.innerWidth < 768) {
                 document.getElementById('sidebar-panel').classList.add('hidden');
                 document.getElementById('main-content-panel').classList.remove('hidden');
@@ -197,7 +241,6 @@
                 document.getElementById('main-chat-panel').classList.add('hidden');
                 document.getElementById('sidebar-settings-view').classList.remove('hidden');
                 document.getElementById('main-settings-panel').classList.remove('hidden');
-                
                 if (window.innerWidth < 768) {
                     document.getElementById('sidebar-panel').classList.add('hidden');
                     document.getElementById('main-content-panel').classList.remove('hidden');
@@ -215,15 +258,30 @@
             viewArchivedMode = !viewArchivedMode;
             document.getElementById('sidebar-title').innerText = viewArchivedMode ? "Archived Chats" : "Chats";
             document.getElementById('archive-btn-text').innerText = viewArchivedMode ? "Lihat Chat Utama" : "Lihat Arsip";
-            
             const filtered = contacts.filter(c => c.isArchived === viewArchivedMode);
             if (filtered.length > 0) {
                 if (window.innerWidth >= 768) switchChat(filtered[0].id);
                 else { renderContacts(); renderMessages(); }
+            } else { activeId = null; renderContacts(); renderMessages(); }
+        }
+
+        // FITUR BARU: Melebarkan area ketik agar muat iklan/pesan broadcast panjang
+        function toggleExpandInput() {
+            const container = document.getElementById('input-container');
+            const textarea = document.getElementById('msg-input');
+            const icon = document.querySelector('#expand-btn i');
+            isInputExpanded = !isInputExpanded;
+
+            if(isInputExpanded) {
+                container.style.height = "180px";
+                textarea.style.height = "150px";
+                icon.className = "fa-solid fa-compress";
+                document.getElementById('expand-btn').title = "Kecilkan Kolom Input";
             } else {
-                activeId = null;
-                renderContacts();
-                renderMessages();
+                container.style.height = "64px";
+                textarea.style.height = "36px";
+                icon.className = "fa-solid fa-expand";
+                document.getElementById('expand-btn').title = "Perluas Kolom Input";
             }
         }
 
@@ -236,10 +294,6 @@
             showContacts.forEach(c => {
                 const last = c.messages[c.messages.length - 1] || { text: 'Belum ada pesan' };
                 const isAct = c.id === activeId ? 'bg-[#202c33]' : '';
-                const archiveIcon = c.isArchived ? 'fa-solid fa-box-open' : 'fa-solid fa-box-archive';
-                const archiveTitle = c.isArchived ? 'Unarchive' : 'Archive';
-
-                // Teks preview di daftar kontak dibuat satu baris saja agar tetap estetik
                 let previewText = last.text.split('\n')[0]; 
 
                 list.insertAdjacentHTML('beforeend', `
@@ -252,8 +306,8 @@
                             </div>
                         </div>
                         <div class="absolute right-2 top-1/2 -translate-y-1/2 flex md:hidden group-hover:flex items-center space-x-2 bg-gradient-to-l from-[#131a1e] via-[#131a1e] to-transparent pl-4 h-full z-10">
-                            <button onclick="event.stopPropagation(); toggleArchiveContact('${c.id}')" class="text-textMuted hover:text-activeGreen p-1" title="${archiveTitle}"><i class="${archiveIcon}"></i></button>
-                            <button onclick="event.stopPropagation(); deleteContact('${c.id}')" class="text-textMuted hover:text-red-400 p-1" title="Delete Contact"><i class="fa-solid fa-trash-can"></i></button>
+                            <button onclick="event.stopPropagation(); toggleArchiveContact('${c.id}')" class="text-textMuted hover:text-activeGreen p-1"><i class="fa-solid fa-box-archive"></i></button>
+                            <button onclick="event.stopPropagation(); deleteContact('${c.id}')" class="text-textMuted hover:text-red-400 p-1"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
                     </div>
                 `);
@@ -271,7 +325,7 @@
         }
 
         function deleteContact(id) {
-            if (confirm("Hapus kontak dan seluruh pesan permanen?")) {
+            if (confirm("Hapus kontak permanen?")) {
                 contacts = contacts.filter(c => c.id !== id);
                 if (activeId === id) {
                     const remaining = contacts.filter(c => c.isArchived === viewArchivedMode);
@@ -284,13 +338,7 @@
         function renderMessages() {
             const box = document.getElementById('chat-messages'); box.innerHTML = '';
             const act = contacts.find(c => c.id === activeId); 
-            
-            if (!act) {
-                box.innerHTML = '<div class="h-full flex items-center justify-center text-textMuted text-sm text-center p-4">Pilih chat untuk memulai obrolan</div>';
-                document.getElementById('active-name').innerText = "-";
-                document.getElementById('active-avatar').innerText = "?";
-                return;
-            }
+            if (!act) { box.innerHTML = '<div class="h-full flex items-center justify-center text-textMuted text-sm">Silakan pilih obrolan</div>'; return; }
 
             document.getElementById('active-name').innerText = act.name;
             document.getElementById('active-avatar').innerText = act.name[0];
@@ -302,12 +350,33 @@
                 const side = isOut ? 'justify-end' : 'justify-start';
                 const border = isSel ? 'border-2 border-emerald-400 scale-[0.98]' : '';
 
-                // KUNCI UTAMA: Menggunakan class `whitespace-pre-wrap` dan `break-words` agar format teks tersusun sempurna ke bawah
-                let contentHTML = `<p class="text-sm font-light pr-8 whitespace-pre-wrap break-words leading-relaxed">${m.text}</p>`;
+                let contentHTML = `<p class="text-sm font-light pr-6 whitespace-pre-wrap break-words leading-relaxed">${m.text}</p>`;
                 
-                if (m.msgType === 'image') contentHTML = `<img src="${m.src}" class="max-w-[240px] sm:max-w-xs rounded mb-1 max-h-48 object-cover">`;
-                if (m.msgType === 'video') contentHTML = `<video src="${m.src}" controls class="max-w-[240px] sm:max-w-xs rounded mb-1 max-h-48"></video>`;
-                if (m.msgType === 'document') contentHTML = `<div class="flex items-center space-x-2 p-1 bg-black/20 rounded text-sm max-w-xs"><i class="fa-regular fa-file-pdf text-xl text-red-400 shrink-0"></i><span class="truncate max-w-[140px] sm:max-w-[180px]">${m.text}</span></div>`;
+                // FITUR DATA DOWNLOAD: Menambahkan tombol download di setiap data media
+                if (m.msgType === 'image') {
+                    contentHTML = `
+                        <div class="relative group/media">
+                            <img src="${m.src}" class="max-w-[240px] sm:max-w-xs rounded mb-1 max-h-48 object-cover">
+                            <button onclick="event.stopPropagation(); downloadMediaFile('${m.src}', 'photo.jpg')" class="absolute top-2 right-2 bg-black/60 hover:bg-black text-white w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover/media:opacity-100 transition shadow"><i class="fa-solid fa-download"></i></button>
+                        </div>`;
+                }
+                if (m.msgType === 'video') {
+                    contentHTML = `
+                        <div class="relative group/media">
+                            <video src="${m.src}" controls class="max-w-[240px] sm:max-w-xs rounded mb-1 max-h-48"></video>
+                            <button onclick="event.stopPropagation(); downloadMediaFile('${m.src}', 'video.mp4')" class="absolute top-2 right-2 bg-black/60 hover:bg-black text-white w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover/media:opacity-100 transition shadow"><i class="fa-solid fa-download"></i></button>
+                        </div>`;
+                }
+                if (m.msgType === 'document') {
+                    contentHTML = `
+                        <div class="flex items-center justify-between p-2 bg-black/20 rounded text-sm max-w-xs gap-4">
+                            <div class="flex items-center space-x-2 min-w-0">
+                                <i class="fa-regular fa-file-pdf text-xl text-red-400 shrink-0"></i>
+                                <span class="truncate max-w-[140px] sm:max-w-[160px]">${m.text}</span>
+                            </div>
+                            <button onclick="event.stopPropagation(); alert('Mengunduh dokumen mock: ' + '${m.text}')" class="text-textMuted hover:text-white p-1"><i class="fa-solid fa-download"></i></button>
+                        </div>`;
+                }
 
                 box.insertAdjacentHTML('beforeend', `
                     <div oncontextmenu="event.preventDefault(); toggleSelect(${m.id})" onclick="if(selectedIds.length>0) toggleSelect(${m.id})" class="flex ${side} cursor-pointer transition-all duration-100">
@@ -322,16 +391,64 @@
             box.scrollTop = box.scrollHeight;
         }
 
-        // Fungsi kontrol tombol ketik: Enter = Kirim, Shift + Enter = Baris Baru
-        function handleKeyPress(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault(); // Mencegah baris baru bawaan enter
-                sendText();
+        // FITUR BARU: Download Pesan Teks Terpilih (Eksport PDF & TXT)
+        function downloadSelected(format) {
+            const act = contacts.find(c => c.id === activeId);
+            const selectedMsgs = act.messages.filter(m => selectedIds.includes(m.id));
+            
+            if(selectedMsgs.length === 0) return alert("Pilih pesan teks terlebih dahulu!");
+
+            // Gabungkan teks terpilh
+            let combinedText = `RIWAYAT PESAN DARI CHAT: ${act.name}\n`;
+            combinedText += `Diekspor pada: ${new Date().toLocaleString()}\n`;
+            combinedText += `==========================================\n\n`;
+            
+            selectedMsgs.forEach(m => {
+                const sender = m.type === 'out' ? 'Anda' : act.name;
+                combinedText += `[${m.time}] ${sender}:\n${m.text}\n\n--------------------\n`;
+            });
+
+            if(format === 'txt') {
+                // Proses unduh file .txt biasa
+                const blob = new Blob([combinedText], { type: 'text/plain' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `Chat_Export_${act.name}.txt`;
+                link.click();
+            } else if (format === 'pdf') {
+                // Proses unduh file .pdf menggunakan html2pdf.js secara instan
+                const exportArea = document.getElementById('pdf-export-container');
+                exportArea.innerHTML = `
+                    <h2 style="color: #005c4b; margin-bottom: 5px;">WhatsApp Gateway - Chat Export</h2>
+                    <p style="font-size: 12px; color: #555;">Kontak: <b>${act.name}</b> | Tanggal Cetak: ${new Date().toLocaleDateString()}</p>
+                    <hr style="border: 1px solid #ccc; margin-bottom: 20px;">
+                    <div style="white-space: pre-wrap; font-size: 14px; line-height: 1.6;">${combinedText.replace(/_|-/g, '')}</div>
+                `;
+                
+                const options = {
+                    margin: 10,
+                    filename: `Chat_Export_${act.name}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().from(exportArea).save();
             }
-            // Otomatis menyesuaikan tinggi textarea berdasarkan jumlah baris teks yang diketik
-            const textarea = e.target;
-            textarea.style.h = 'auto';
-            textarea.style.height = (textarea.scrollHeight) + 'px';
+            clearSelection();
+        }
+
+        // FITUR BARU: Download File Gambar & Video Base64 ke Komputer Lokal
+        function downloadMediaFile(base64Data, filename) {
+            const link = document.createElement('a');
+            link.href = base64Data;
+            link.download = filename;
+            link.click();
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter' && !e.shiftKey && !isInputExpanded) {
+                e.preventDefault(); sendText();
+            }
         }
 
         function sendText() {
@@ -340,15 +457,12 @@
             const now = new Date();
             
             act.messages.push({ 
-                id: Date.now(), 
-                type: 'out', 
-                msgType: 'text', 
-                text: inp.value, 
+                id: Date.now(), type: 'out', msgType: 'text', text: inp.value, 
                 time: now.getHours().toString().padStart(2, '0') + '.' + now.getMinutes().toString().padStart(2, '0') 
             });
             
             inp.value = '';
-            inp.style.height = '36px'; // Reset tinggi input setelah dikirim
+            if(!isInputExpanded) inp.style.height = '36px';
             renderMessages(); renderContacts(); save();
         }
 
@@ -403,10 +517,7 @@
             const act = contacts.find(c => c.id === activeId);
             const target = contacts.find(c => c.id === targetId);
             const selectedMsgs = act.messages.filter(m => selectedIds.includes(m.id));
-            
-            selectedMsgs.forEach(m => {
-                target.messages.push({ ...m, id: Date.now() + Math.random(), type: 'out' });
-            });
+            selectedMsgs.forEach(m => { target.messages.push({ ...m, id: Date.now() + Math.random(), type: 'out' }); });
             closeModal('forward-modal'); clearSelection(); renderContacts(); save();
             alert(`Pesan berhasil diteruskan ke ${target.name}`);
         }
@@ -422,14 +533,8 @@
             closeModal('contact-modal'); document.getElementById('new-name').value=''; switchChat(id);
         }
 
-        if (window.innerWidth >= 768) {
-            renderContacts();
-            renderMessages();
-        } else {
-            renderContacts();
-            document.getElementById('sidebar-panel').classList.remove('hidden');
-            document.getElementById('main-content-panel').classList.add('hidden');
-        }
+        if (window.innerWidth >= 768) { renderContacts(); renderMessages(); } 
+        else { renderContacts(); document.getElementById('sidebar-panel').classList.remove('hidden'); document.getElementById('main-content-panel').classList.add('hidden'); }
     </script>
 </body>
 </html>
